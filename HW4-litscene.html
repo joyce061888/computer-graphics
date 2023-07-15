@@ -1,0 +1,261 @@
+<!--HWK4: Lit Scene
+    Author: Joyce and Heidi
+    Date: March 8, 2023
+-->
+
+<!doctype html>
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Lit Scene Display</title>
+<style>
+      /* feel free to style the canvas any way you want. If you want it to
+      use the entire window, set width: 100% and height: 100%. */
+      
+      canvas {
+          display: block;
+          margin: 10px auto;
+          width: 80%;
+          height: 500px;
+      }
+    </style>
+
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/three-r95.all.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/three-r80.min.js"
+</script>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/OrbitControls-r95.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/OrbitControls.js"
+</script>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/tw-sp21.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/tw-fa18.js"
+</script>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/dat.gui-r95.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/dat.gui.min.js"
+</script>
+
+</head>
+<body>
+<h1><em>HW4: Lit Scene</em></h1>
+<p>
+<script>
+
+// create a scene
+var scene = new THREE.Scene();
+
+var sceneParams = {
+    boxWidth: 400,
+    ballRadius: 35,
+    ballColor: 0xC590CE,
+    shininess: 25,
+    specularColor: new THREE.Color("gray"),
+    coneRadius: 20,
+    coneHeight: 40,
+    sconceColor: new THREE.Color("gray"),
+    sideWallColor: 0x53CCDB,
+    topWallColor: 0x92C655,
+    floorColor: 0xF3D988,
+    wallShininess: 5,
+    spotlightX: 0,
+    spotlightY: 0,
+    spotlightZ: 0,
+    spotlightColor: new THREE.Color("gray"),
+    ambLightColor: new THREE.Color("gray"),
+    dirLightColor: new THREE.Color("gray")
+}
+
+var moveConePositionZ = (sceneParams.boxWidth/2) - sceneParams.coneRadius;
+var moveConePositionY = (sceneParams.boxWidth/2) - sceneParams.ballRadius;
+var moveSconceLightBall_X = -moveConePositionY + moveConePositionY/6;
+var moveBallPosition = (sceneParams.boxWidth/2) - sceneParams.ballRadius;
+
+
+var colorMaterials = [new THREE.MeshPhongMaterial( {color: sceneParams.sideWallColor,
+                                                    specular: sceneParams.specularColor,
+                                                    shininess: sceneParams.wallShininess,
+                                                    flatShading: THREE.SmoothShading,
+                                                    side: THREE.BackSide}), 
+                     new THREE.MeshPhongMaterial( {color: sceneParams.topWallColor,
+                                                    specular: sceneParams.specularColor,
+                                                    shininess: sceneParams.wallShininess,
+                                                    flatShading: THREE.SmoothShading,
+                                                    side: THREE.BackSide}),
+                     new THREE.MeshPhongMaterial( {color: sceneParams.floorColor,
+                                                    specular: sceneParams.specularColor,
+                                                    shininess: sceneParams.wallShininess,
+                                                    flatShading: THREE.SmoothShading,
+                                                    side: THREE.BackSide}),
+                    new THREE.MeshPhongMaterial( {color: sceneParams.ballColor, 
+                                                    specular: sceneParams.specularColor,
+                                                    shininess: sceneParams.shininess,
+                                                    flatShading: THREE.SmoothShading}),
+                    new THREE.MeshPhongMaterial( {color: sceneParams.sconceColor,
+                                                    specular: sceneParams.specularColor,
+                                                    shininess: sceneParams.shininess,
+                                                    flatShading: THREE.SmoothShading,
+                                                    side: THREE.DoubleSide})                         
+]
+
+function addSphere(box) {
+    /**
+     * Creates the sphere and colors it then adds it to the 
+     * box frame.
+     * */
+    var sphereFrame = new THREE.Object3D();
+    var sphereGeom = new THREE.SphereGeometry(sceneParams.ballRadius, 50, 50); //TODO: change ball size relative to box
+    var sphereMesh = new THREE.Mesh(sphereGeom, colorMaterials[3]);
+    // position the ball in the box corner
+    sphereMesh.position.set(moveSconceLightBall_X, -moveBallPosition, -moveBallPosition);
+    sphereFrame.add(sphereMesh);
+    box.add(sphereFrame);
+    return box;
+    //scene.add(sphereMesh);
+    //return sphereMesh;
+}
+
+// TODO: make a frame with sconce and spoLight?
+function addSconce(box) {
+    /**
+     * Creates the sconce lighting object with two cones with 
+     * tips pointing at each other, then adds it to one sconce
+     * frame which is then put into the box frame.
+     * */
+    var sconceFrame = new THREE.Object3D();
+
+    var coneGeomDown = new THREE.ConeGeometry(sceneParams.coneRadius, sceneParams.coneHeight,16,1,true);
+    var coneMeshDown = new THREE.Mesh(coneGeomDown, colorMaterials[4]);
+    //coneMeshDown.position.set(moveConePositionY, 0, moveConePositionY);
+    sconceFrame.add(coneMeshDown);
+    //scene.add(coneMeshDown);
+
+    var coneGeomUp = new THREE.ConeGeometry(sceneParams.coneRadius, sceneParams.coneHeight,16,1,true);
+    var coneMeshUp = new THREE.Mesh(coneGeomUp, colorMaterials[4]);
+    coneMeshUp.position.y = sceneParams.coneHeight/2 + 0.8;
+    coneMeshUp.rotation.x = -Math.PI;
+    sconceFrame.add(coneMeshUp);
+    //scene.add(coneMeshUp);
+    // move the whole sconce to the corner of the box above the ball
+    sconceFrame.position.set(moveSconceLightBall_X, moveConePositionY/4, -moveConePositionZ);
+    box.add(sconceFrame);
+    return box;
+}
+
+function addSpotLightDown() {
+    /**
+     * Creates a spotlight out of each cone facing down
+     * */
+    var spotAngle =  Math.atan(0.5);;  // TODO: change the angle 
+    // add spotlight to come out of the cone facing down
+    var spotLightDown = new THREE.SpotLight(sceneParams.spotlightColor,1, 0,spotAngle,0,1);
+    //TODO: need to figure out correct y positioning of source of light
+    spotLightDown.position.set(moveSconceLightBall_X, sceneParams.boxWidth/4.2, -moveConePositionY);
+    // target positioned on ground from sconce facing down
+    var targetObjectDown = new THREE.Object3D();
+    targetObjectDown.position.set(moveSconceLightBall_X, -sceneParams.boxWidth, -moveConePositionY);
+    spotLightDown.target = targetObjectDown;
+    scene.add(spotLightDown);
+    scene.add(spotLightDown.target);
+    return spotLightDown;
+}
+
+function addSpotLightUp() {
+    /**
+     * Creates a spotlight out of each cone facing up
+     * */
+    var spotAngle =  Math.atan(0.5);;  // TODO: change the angle 
+    // add spotlight to come out of the cone facing up
+    var spotLightUp = new THREE.SpotLight(sceneParams.spotlightColor,1, 0,spotAngle,0,1);
+     //TODO: need to figure out correct y positioning of source of light
+    spotLightUp.position.set(moveSconceLightBall_X, -sceneParams.boxWidth/2.5 + moveConePositionY, -moveConePositionY);
+    // target positioned on ground from sconce facing up
+    var targetObjectUp = new THREE.Object3D();
+    targetObjectUp.position.set(moveSconceLightBall_X, sceneParams.boxWidth, -moveConePositionY);
+    spotLightUp.target = targetObjectUp;
+    scene.add(spotLightUp);
+    scene.add(spotLightUp.target);
+    return spotLightUp;
+}
+
+function addBox() {
+    /**
+     * Creates the box with only the inside sides of the box colored;
+     * the sphere and the sconce is added to its frame.
+     * */
+    var boxFrame = new THREE.Object3D();
+
+    var boxGeom = new THREE.BoxGeometry(sceneParams.boxWidth,sceneParams.boxWidth,
+    sceneParams.boxWidth); //TODO: increase box size
+    // set different colors for the faces of the box
+    boxGeom.colorsNeedUpdate = true; 
+    TW.setMaterialForFaces(boxGeom,0,0,1,2,3,8,9,10,11);
+    TW.setMaterialForFaces(boxGeom,1,4,5); //ceiling
+    TW.setMaterialForFaces(boxGeom,2,6,7); //floor
+
+    // change the color for the faces 
+    var boxMesh = new THREE.Mesh(boxGeom, colorMaterials);
+
+    boxFrame.add(boxMesh);
+    addSphere(boxFrame);
+    addSconce(boxFrame);
+    return boxFrame;
+    //scene.add(boxMesh);
+}
+
+// add the litScene with the box, sconce, and ball to the scene
+var litScene = addBox();
+scene.add(litScene);
+
+// adds spolight and its target to the scene
+var spotLightUp = addSpotLightUp();
+var spotLightDown = addSpotLightDown();
+
+// add ambient light to the scene
+var ambLight = new THREE.AmbientLight(sceneParams.ambLightColor);
+scene.add(ambLight);
+
+// add directional light to the scene
+var dirLight = new THREE.DirectionalLight(sceneParams.dirLightColor, 1);
+// TODO: need to correctly position directional light
+dirLight.position.set(moveConePositionY/2, moveConePositionY/2, moveConePositionY);
+scene.add(dirLight);
+// ====================================================================
+// GUI Controls
+var gui = new dat.GUI();
+
+// GUI control objects
+var controls = {
+    ambLightOn: true,
+    dirLightOn: true,
+    spotLightOn: true
+};
+
+// Adding toggle buttons to turn on/off the lights
+gui.add(controls, 'ambLightOn').onChange(function(value) {
+  ambLight.visible = value;
+});
+
+gui.add(controls, 'dirLightOn').onChange(function(value) {
+  dirLight.visible = value;
+});
+
+gui.add(controls, 'spotLightOn').onChange(function(value) {
+  spotLightDown.visible = value;
+  spotLightUp.visible = value;
+});
+
+// Rendering the scene with camera and renderer
+var renderer = new THREE.WebGLRenderer();
+
+TW.mainInit(renderer,scene);
+
+TW.cameraSetup(renderer,
+                           scene,
+                           {minx: -sceneParams.boxWidth/2, maxx: sceneParams.boxWidth/2,
+                            miny: -sceneParams.boxWidth/2, maxy: sceneParams.boxWidth/2,
+                            minz: -sceneParams.boxWidth/2, maxz: sceneParams.boxWidth/2});
+
+
+</script>
+</p></body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+
+<!--Final Project--Pokemon Scene 
+    Author: Joyce Chung
+    Date: April 3, 2023
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>zzz</title>
+<style>
+      canvas {
+          display: block;
+          margin: 10px auto;
+          width: 80%;
+          height: 600px;
+      }
+    </style>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/three-r95.all.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/three-r80.min.js"
+</script>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/tw-sp21.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/tw-fa18.js"
+</script>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/OrbitControls-r95.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/OrbitControls-r80.js"
+</script>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/dat.gui-r95.js">
+    "https://cs.wellesley.edu/~cs307/threejs/libs/dat.gui.min.js"
+</script>
+
+</head>
+<body>
+<script id="pokemonscenecode">
+
+// a straight line in +y-dir. of len 1
+var zStraightControlPoints = [ [0,0,0],
+                      [0,0.5,0],
+                      [0,0.7,0],
+                      [0,1,0] ]; 
+
+// a straight line in +y-dir. of len radical 2 ~ 1.414                 
+var zMidControlPoints = [ [0,0,0],
+                      [0,0.5,0],
+                      [0,0.7,0],
+                      [0,1.414,0] ]; 
+        
+
+function createZ() {
+    /* creates Z in a frame, to show snorlax sleeping */
+    var zFrame = new THREE.Object3D();
+    // straight lines of Z
+    var lineGeom = TW.createBezierCurve(zStraightControlPoints, 20);
+    var lineMat = new THREE.LineBasicMaterial( { color: THREE.ColorKeywords.black,
+                                              linewidth: 1 } );
+    var line1 = new THREE.Line( lineGeom, lineMat );
+    var line2 = line1.clone();
+    // middle line of Z
+    var lineMidGeom = TW.createBezierCurve(zMidControlPoints, 20);
+    var lineMidMat = new THREE.LineBasicMaterial( { color: THREE.ColorKeywords.black,
+                                              linewidth: 1 } );
+    var line3 = new THREE.Line( lineMidGeom, lineMidMat );
+    // position and rotate lines to make a 'Z'
+    line1.rotation.z = Math.PI/2; // rotate line so parallel to x-axis
+    line2.position.z = 1;
+    line2.rotation.z = Math.PI/2;
+    line3.rotation.set(0, Math.PI/4, Math.PI/2);
+    
+    zFrame.add(line1);
+    zFrame.add(line2);
+    zFrame.add(line3);
+    return zFrame;
+}
+
+// construct a renderer for the scene
+var renderer = new THREE.WebGLRenderer();
+// create the Scene object
+var scene = new THREE.Scene();
+
+var z = createZ();
+scene.add(z);
+// Camera Setup
+
+TW.mainInit(renderer,scene);
+
+//snorlax bounding box 
+TW.cameraSetup(renderer,
+               scene,
+               {minx: -10, maxx: 10,
+                miny: -10, maxy: 10,
+                minz: -10, maxz: 10});
+
+</script>
+</body>
+</html>

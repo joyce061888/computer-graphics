@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title> HCI Project: Constellation </title>
+        <!-- Font Awesome icons (free version)-->
+        <script src="https://use.fontawesome.com/releases/v5.15.1/js/all.js" crossorigin="anonymous"></script>
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="css/styles.css" rel="stylesheet" />
+    </head>
+    <body id="page-top">
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg bg-secondary text-uppercase fixed-top" id="mainNav">
+            <div class="container">
+                <a class="navbar-brand js-scroll-trigger" href="#page-top"> Creative Pokemon Scene: Computer Graphics Project</a>
+                <button class="navbar-toggler navbar-toggler-right text-uppercase font-weight-bold bg-primary text-white rounded" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="#portfolio">Project</a></li>
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger" href="#aboutus">About US</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Banner-->
+        <header class="masthead bg-primary text-center">
+            <div class="container d-flex align-items-center flex-column">
+                <!-- Banner Constellation Image-->
+                <img class="masthead-avatar mb-5" src="assets/img/main-image.PNG" alt="main Pokemon image">
+                <!-- Icon Divider-->
+            </div>
+        </header>
+
+        <!-- Project Overview/Introduction Section-->
+        <section class="page-section-more overview" id = "overview">
+            <div class = "container">
+                <!-- Project Overview Section Heading-->
+                <h2 class="page-section-heading text-center text-uppercase text-secondary mb-0">Project Overview</h2>
+                <br>
+                <p class = "text-center text-secondary mb-0"> Creating an animated scene with Pokemon.</p>
+                <!-- Icon Divider-->
+                <div class="divider-custom">
+                    <div class="divider-custom-line"></div>
+                    <div class="divider-custom-icon"><i class="fas fa-star"></i></div>
+                    <div class="divider-custom-line"></div>
+                </div>
+                <!-- Project Statement -->
+                <h4 class = "text-secondary"> Project Statement </h4>
+                <p class = "text-secondary mb-0"> We are creating an animated scene with Jigglypuff, Snorlax, and Chinchou using core concepts of 
+                    Computer Graphics such as hierarchical modeling, material and lighting, Bezier curves and surfaces, texture mapping, and animation.
+                </p>
+                <br>
+
+                <!-- Solution -->
+                <h4 class = "text-secondary"> Modular Design </h4>
+                <p class = "text-secondary mb-0"> In order to make our scene fault-tolerant, we decided to take a modular approach to our design. 
+                    We created a js file for each of the three Pokemon frames we made and imported them into our pokemon scene html file. 
+                    Similarly, we imported our heart js file and zzz js file (the 'zzz' symbol that indicated that Snorlax is sleeping) in our scene file.
+                </p>
+
+               <!-- <img class="solution-img img-fluid mb-5" src="assets/img/solution.PNG" alt="Planted Solution"> -->
+               
+                <p>
+                    <ol>
+                        <li> <b>Jigglypuff</b> </li>
+                                 <p>We used hierarchical modeling to create each part of Jigglypuff in different frames. Then,
+                                    we arranged all the individual frames relative to one another and put them into one frame.
+                                    We used a Bezier surface for its hair, a sphere geometry for its body and limbs,
+                                    circle geometries for its eyes and mouth, and cone geomtries for its ear. 
+                                     <br>
+                                </p>
+                                <img class="masthead-avatar mb-5" src="assets/img/jigglypuff.PNG" alt="Jigglypuff image">
+                        <li><b>Snorlax</b></li>
+                                <p>We used sphere geometries for its head, body and limbs, each scaled in an axis to 
+                                    stretch the sphere, and used cone geometries for its ears. We used portions of the 
+                                    sphere geomtry using the phi and theta angle for the beige portion of the belly and face, 
+                                    and we used Bezier curves for its eyes and mouth.
+
+                                <br>
+                                </p>
+                                <img class="masthead-avatar mb-5" src="assets/img/snorlax.PNG" alt="Snorlax image">
+                        <li><b>Chinchou</b></li>
+                                <p>
+                                <br>
+                                </p>
+                                <img class="masthead-avatar mb-5" src="assets/img/chinchou.jpg" alt="Chinchou image">
+                        <li><b>Heart</b></li>
+                        <p> We used Bezier surfaces to create the heart surface. We create the front half of the 
+                            heart and clones the other halves and positioned/rotated them relative to each other.
+                        <br>
+                        </p>
+                        <img class="masthead-avatar mb-5" src="assets/img/heart.PNG" alt="Heart image">
+                        <li><b>ZZZ</b></li>
+                        <p> We used Bezier lines to create 3 straight lines and positioned/rotated them
+                            using basic trigonometry to get the 'Z' shape.
+                        <br>
+                        </p>
+                        <img class="masthead-avatar mb-5" src="assets/img/zzz.PNG" alt="ZZZ image">
+                    </ol>
+                </p>
+
+            </div>
+        </section>
+
+        <!-- Project Milestones Section-->
+        <section class="page-section portfolio" id="portfolio">
+            <div class="container">
+                <!-- Project Milestones Section Heading-->
+                <h2 class="page-section-heading text-center text-uppercase text-secondary mb-0">Project Milestones</h2>
+                
+                    <p>
+                        <ol>
+                            <li> <b>Static Scene</b> </li>
+                                     <p> This is our static scene with all the Pokemon objects. 
+                                         <br>
+                                    </p>
+                                    <img class="masthead-avatar mb-5" src="assets/img/pokemon-scene.jpg" alt="Pokemon scene image">
+                            
+                        </ol>
+                    </p>
+                </div>
+
+                <!-- Portfolio Grid Items-->
+                <div class="row justify-content-center">
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer-->
+        <footer class="footer text-center" id = "aboutus">
+            <div class="container">
+                <div class="row">
+                    <!-- Footer Location-->
+                    <div class="col-lg-5 mb-5 mb-lg-0">
+                        <h5 class="text-uppercase mb-4">Location</h4>
+                        <p class="lead mb-0">
+                            Wellesley College, MA, USA
+                        </p>
+                    </div>
+                    <!-- Footer Social Icons
+                    <div class="col-lg-4 mb-5 mb-lg-0">
+                        
+                    </div> -->
+                    <!-- Footer About Text-->
+                    <div class="col-lg-7">
+                        <h5 class="text-uppercase mb-4">About Us</h4>
+                        <p class="lead mb-0">
+                            Website adapted from HCI project website by<a href="https://cs.wellesley.edu/~dc103/CS%20220/portfolio.html" style="color:#ff5757" target="_blank">Joyce Chung, Emily Lu</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Bootstrap core JS-->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Third party plugin JS-->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
+        <!-- Contact form JS-->
+        <script src="assets/mail/jqBootstrapValidation.js"></script>
+        <script src="assets/mail/contact_me.js"></script>
+        <!-- Core theme JS-->
+        <script src="js/scripts.js"></script>
+    </body>
+</html>

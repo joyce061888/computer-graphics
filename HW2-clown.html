@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+
+<!--HW1 - Clown 
+    Author: Joyce Chung
+    Date: February 14, 2023
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>The Clown - Joyce Chung</title>
+<style>
+      canvas {
+          display: block;
+          margin: 10px auto;
+          width: 80%;
+          height: 600px;
+      }
+    </style>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/three-r95.all.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/three-r80.min.js"
+</script>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/tw-sp21.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/tw-fa18.js"
+</script>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/OrbitControls-r95.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/OrbitControls-r80.js"
+</script>
+</head>
+<body>
+<script id="clowncode">
+
+// parameters that specify the geometrical structure of the clown
+var params = {
+    mouthRadius: 0.5,
+    mouthArc: 2.3,
+    radialSegments: 12, // mouth
+    tubeRadius: 0.1,  // mouth
+    tubeSegments: 48,  // mouth
+    mouthAngleZ: 4, // mouth below nose
+    mouthAngleX: Math.PI/6, // mouth on front of face
+
+    noseRadius: 0.2,
+    noseRotation: TW.degrees2radians(10),
+
+    earRadius: 0.7,
+    earScale: 0.5,
+    earAngle: Math.PI/12,  // along z-axis
+
+    eyeRadius: 0.3,
+    eyeAngleX: -Math.PI/20,
+    eyeAngleY: +Math.PI/6,
+
+    hatRadius:  1.5, //hat base
+    hatArc: 2*Math.PI,
+    hatRadialSegments: 2, 
+    hatTubeRadius: 1,  
+    hatTubeSegments: 48,  
+    hatBaseAngleZ: 4, 
+    hatBaseAngleX: Math.PI/2, 
+
+    armJointRadius: 0.8,
+    armLength: 4,
+    armRadiusTop: 0.35,
+    armRadiusBottom: 0.35,
+
+    shoeRadius: 0.8,
+
+    legRadiusTop: 0.35,
+    legRadiusBottom: 0.35,
+    legLength: 4,
+    legRotationX: -TW.degrees2radians(60),
+    legRotationZ: TW.degrees2radians(20),
+
+    hipWidth: 1.2,
+    hipHeight: -7,
+
+    headRadius: 2,
+
+    bodyRadius: 3,
+    bodyScaleY: 1.5
+};
+
+// colors and materials for the clown
+var bodyMaterial = new THREE.MeshBasicMaterial({color: 0xD08050});
+var headMaterial = new THREE.MeshBasicMaterial({color: 0xB07040});
+var blackMaterial = new THREE.MeshBasicMaterial({color: 0x000000});
+var lipsMaterial = new THREE.MeshBasicMaterial({color: "pink"});
+var hatMaterial = new THREE.MeshBasicMaterial({color: 0x00BFFF});
+var shoeMaterial = new THREE.MeshBasicMaterial({color: 0x00FA9A})
+
+function createNose(params) {
+    // create and return a Mesh for the nose
+    var radius = params.noseRadius;
+    var noseGeometry = new THREE.SphereGeometry(radius,10,10);
+    var noseMesh = new THREE.Mesh(noseGeometry, blackMaterial);
+    return noseMesh;
+}
+
+function addNose(head,params) {
+    /* adds a nose to the head. It's placed by creating a composite object
+     * centered in the middle of the head, positioning the nose at the
+     * head radius on +Z, then rotating around the X axis by a little */
+    var noseframe = new THREE.Object3D();
+    var nose = createNose(params);
+    var radius = params.headRadius;
+    nose.position.z = radius;   // within the noseframe
+    noseframe.add(nose);
+    var angle = params.noseRotation;
+    noseframe.rotation.x = angle;
+    head.add(noseframe);
+    return head;
+}
+
+function createEar(params) {
+    // create and return a Mesh for an ear
+    var radius = params.earRadius;
+    var earGeometry = new THREE.SphereGeometry(radius,10,10);
+    var ear = new THREE.Mesh(earGeometry, bodyMaterial);
+    // flattens the sphere to make it look more like a flat disk
+   // ear.scale.z = params.earScale;
+    return ear;
+}
+
+function addEar(head,params,side) {
+    /* adds an ear to the head on the right (side=1) or left (side=-1).
+     * The center of the ear is flush with the surface of the head by
+     * moving it out by the radius, and rotating it around the Z axis
+     * to get it to the desired height */
+    var earframe = new THREE.Object3D();
+    var ear = createEar(params);
+    var radius = params.headRadius;
+    var angle = params.earAngle;
+    ear.position.x = side * radius; // within the earframe
+ //   earframe.rotation.z = side * angle;
+    earframe.add(ear);
+    head.add(earframe);
+    return head;
+}
+
+function createEye(params) {
+    // create and return a Mesh for an eye
+    var radius = params.eyeRadius;
+    var eyeGeometry = new THREE.SphereGeometry(radius,10,10);
+    var eyeMesh = new THREE.Mesh(eyeGeometry, blackMaterial);
+    return eyeMesh;
+}
+
+function addEye(head,params,side) {
+    /* adds an eye to the head on the right (side=1) or left (side=-1).
+     * The center of the eye is flush with the surface of the head by
+     * moving it out along the Z axis by the radius, and rotating it
+     * around the X and then Y axes to get it to the desired height */
+    var eyeframe = new THREE.Object3D();
+    var eye = createEye(params);
+    var radius = params.headRadius;
+    eye.position.z = radius;     // within the eyeframe
+    var angleX = params.eyeAngleX;  
+    var angleY = params.eyeAngleY;  
+    eyeframe.rotation.x = angleX;  // positions eyes above the nose about x-axis
+    eyeframe.rotation.y = side * angleY;  // positions eyes on each side of y-axis
+    eyeframe.add(eye);
+    head.add(eyeframe);
+    return head;
+}
+
+function createMouth(params) {
+    // create and returns a Mesh for the mouth
+    var radius = params.mouthRadius;
+    var tubeRadius = params.tubeRadius;
+    var radialSegments = params.radialSegments;
+    var tubeSegments = params.tubeSegments;
+    var arc = params.mouthArc;
+
+    var mouthGeometry = new THREE.TorusGeometry(radius, tubeRadius, radialSegments, tubeSegments, arc);
+    var mouthMesh = new THREE.Mesh(mouthGeometry, lipsMaterial);
+    return mouthMesh;
+}
+
+function addMouth(head, params) {
+    /**
+     * adds a mouth to the head frame below the nose along the y-axis.
+     */
+    var mouthFrame = new THREE.Object3D();
+    var mouth = createMouth(params);
+    var radius = params.headRadius; 
+    var angleX = params.mouthAngleX; 
+    var angleZ = params.mouthAngleZ;
+    mouth.position.z = radius;     // within the mouthframe, mouth needs to be on head in z-axis side
+    mouthFrame.rotation.x = angleX;
+    mouthFrame.rotation.z = angleZ;
+    mouthFrame.add(mouth);
+    head.add(mouthFrame);
+    return head;
+
+}
+
+function createHead(params) {
+    /* creates and returns a clown head object, with origin in the 
+     * center and eyes on the +Z side of the head, and ears on the left 
+     * (-X) and right (+X) sides */
+    var head = new THREE.Object3D();
+    var radius = params.headRadius;
+    var headGeometry = new THREE.SphereGeometry(radius, 10, 10);
+    var headMesh = new THREE.Mesh(headGeometry, headMaterial);
+    head.add(headMesh);
+    addNose(head,params);
+    addEar(head,params,1);
+    addEar(head,params,-1);
+    addEye(head,params,1);
+    addEye(head,params,-1);
+    addMouth(head, params);
+    return head;
+}
+
+function createHatBase(params) {
+    // create and returns a Mesh for the hat's base
+    var radius = params.hatRadius;
+    var tubeRadius = params.hatTubeRadius;
+    var radialSegments = params.hatRadialSegments;
+    var tubeSegments = params.hatTubeSegments;
+    var arc = params.hatArc;
+
+    var hatGeometry = new THREE.TorusGeometry(radius, tubeRadius, radialSegments, tubeSegments, arc);
+    var hatMesh = new THREE.Mesh(hatGeometry, hatMaterial);
+    return hatMesh;
+}
+
+function addHatBase(hat, params) {
+    /**
+     * adds a hat base to the hat frame.
+     */
+    var hatBaseFrame = new THREE.Object3D();
+    var hatBase = createHatBase(params); 
+    
+    // to position the base right above the head
+    var hatTopHeight = params.headRadius * 2;
+
+    hatBaseFrame.add(hatBase);
+    hatBaseFrame.position.y = -hatTopHeight/1.5;
+    hatBaseFrame.rotation.x = params.hatBaseAngleX;
+    hat.add(hatBaseFrame);
+    return hat;
+}
+
+function createHatTop(params) {
+    // creates and returns a Mesh for the hat's top
+    var topRadius = params.headRadius + 0.5;
+    var bottomRadius = params.headRadius;
+    var height = params.headRadius * 1.5;
+
+    var hatGeometry = new THREE.CylinderGeometry(topRadius, bottomRadius, height, 40);
+    var hatMesh = new THREE.Mesh(hatGeometry, hatMaterial);
+    return hatMesh;
+}
+
+function addHatTop(hat, params) {
+    var hatTopFrame = new THREE.Object3D();
+    var hatTop = createHatTop(params);
+    hatTopFrame.add(hatTop);
+    hatTopFrame.position.y = -1.1; // ask - how to position hatTop with math?
+    hat.add(hatTopFrame);
+    return hat;
+}
+
+function createHat(params) {
+    /**
+     * creates and returns a clown hat object 
+     */
+    var hat = new THREE.Object3D();
+    addHatBase(hat, params);
+    addHatTop(hat, params);
+    hat.position.x = params.headRadius/2;
+    hat.rotation.z = -Math.PI/12;
+    return hat;  
+}
+
+function createArmJoint(params) {
+    /**
+     * Creates and returns a Mesh for the joint and hand for the arm
+     * */
+    var jointRadius = params.armJointRadius;
+    var armJointGeom = new THREE.SphereGeometry(jointRadius, 10, 10);
+    var armJointMesh = new THREE.Mesh(armJointGeom, lipsMaterial); // ask - change color
+    return armJointMesh;
+}
+
+function addArmJoint(arm, params, armSide) {
+    var jointFrame = new THREE.Object3D();
+    var joint = createArmJoint(params);
+    jointFrame.add(joint);
+
+    // position the joint and hands relative to the arm cylinder
+    jointFrame.position.y = armSide*params.armLength/2;
+
+    arm.add(jointFrame);
+    return arm;
+}
+
+
+function createArm(params) {
+    /* creates and returns an Object with the center at the shoulder 
+     * and the negative Y axis running down the center */
+    var armFrame = new THREE.Object3D();
+
+    // arm cylinder without joint and hand yet
+    var top = params.armRadiusTop;
+    var bot = params.armRadiusBottom;
+    var len = params.armLength;
+    var armGeom = new THREE.CylinderGeometry(top,bot,len,10);
+    var armMesh = new THREE.Mesh(armGeom, headMaterial);
+
+    armFrame.add(armMesh);
+
+    addArmJoint(armFrame, params, 1); // joint above the arm 
+    addArmJoint(armFrame, params, -1); // hand below the arm
+    return armFrame;
+}
+
+function addArm(bear,params,side) {
+    /* adds an arm to the bear on the right (side=1) or left (side=-1) */
+    var arm = createArm(params);
+    var radius = params.bodyRadius;
+    var scale = params.bodyScaleY; 
+    var sx = radius + 0.5;
+    var sy = scale * radius - (params.headRadius + 1); 
+    arm.position.set(side * sx, sy, 0);
+    arm.rotation.z = side * Math.PI/6; 
+    bear.add(arm);
+}
+
+function createShoe(params) {
+    /* Creates a Mesh and returns a shoe to the clown on the right (side=1) or left (side=-1) */
+    var shoeRadius = params.shoeRadius;
+    var shoeGeom = new THREE.SphereGeometry(shoeRadius, 10, 10, 0, Math.PI);
+    var shoeMesh = new THREE.Mesh(shoeGeom, shoeMaterial);
+    return shoeMesh;
+}
+
+function addShoe(leg, params) {
+    /* adds an show to the clown on the right (side=1) or left (side=-1) */
+    var shoeFrame = new THREE.Object3D;
+    var shoe = createShoe(params);
+    shoeFrame.add(shoe);
+    
+    // position the joint and hands relative to the arm cylinder
+    shoeFrame.position.y = -(params.legLength/2 + params.shoeRadius + params.bodyRadius*params.bodyScaleY);
+    shoeFrame.rotation.x = -Math.PI/2;
+
+    leg.add(shoeFrame);
+}
+    
+function createLeg(radiusTop, radiusBottom, length, params) {
+    /* creates and returns an Object with the center at the top and the 
+     * negative Y axis running down the center */
+    var leg = new THREE.Object3D();
+    var legGeom = new THREE.CylinderGeometry(radiusTop,radiusBottom,length,10);
+    var legMesh = new THREE.Mesh(legGeom, headMaterial);
+    legMesh.position.y = -(length/2 + params.bodyRadius);
+    leg.add(legMesh);
+    addShoe(leg, params);
+    return leg;
+}
+
+function addLeg(bear,params,side) {
+    /* adds a leg to the bear on the right (side=1) or left (side=-1) */
+    var top = params.legRadiusTop;
+    var bot = params.legRadiusBottom;
+    var len = params.legLength;
+    var leg = createLeg(top,bot,len,params);
+
+    var hx = side * params.hipWidth;
+    leg.position.x = hx;
+    bear.add(leg);
+}
+
+function createBody(params) {
+    // creates and returns a body Object for the bear
+    var body = new THREE.Object3D();
+    var radius = params.bodyRadius;
+    var bodyGeom = new THREE.SphereGeometry(radius,20,20);
+    var bodyMesh = new THREE.Mesh(bodyGeom, bodyMaterial);
+    var scale = params.bodyScaleY;
+    bodyMesh.scale.y = scale;  // strectches the body along y-axis
+    body.add(bodyMesh);
+    addArm(body,params,1);
+    addArm(body,params,-1);
+    addLeg(body,params,1);
+    addLeg(body,params,-1);
+    return body;
+}
+
+function createTeddyBear(params) {
+    // creates and returns a bear object
+    var bear = new THREE.Object3D();
+    var body = createBody(params);
+    bear.add(body);
+    var head = createHead(params);
+    var hat = createHat(params);
+    var bs = params.bodyScaleY;
+    var br = params.bodyRadius;
+    var hr = params.headRadius;
+    // calculate position for the center of the head
+    head.position.y = bs*br+hr;
+    hat.position.y = bs*br+hr+params.headRadius*2;
+    bear.add(head);
+    bear.add(hat);
+    return bear;
+}
+
+// construct a renderer for the scene
+var renderer = new THREE.WebGLRenderer();
+
+// create the Scene object
+var scene = new THREE.Scene();
+   
+// add the origin for reference frame
+var originRadius = 2;
+var originMaterial = new THREE.MeshBasicMaterial({color: "yellow"});
+var originMesh = new THREE.Mesh(new THREE.SphereGeometry(originRadius, 10, 10), originMaterial);
+//scene.add(originMesh);
+
+// create a teddy bear and add it to the scene
+var bear = createTeddyBear(params);
+scene.add(bear);
+
+TW.mainInit(renderer,scene);
+
+TW.cameraSetup(renderer,
+               scene,
+               {minx: -5, maxx: 5,
+                miny: -10, maxy: 15,
+                minz: -5, maxz: 5});
+
+TW.viewFromAboveFrontSide();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Template Three.js app</title>
+<style>
+      /* feel free to style the canvas any way you want. If you want it to
+      use the entire window, set width: 100% and height: 100%. */
+      
+      canvas {
+          display: block;
+          margin: 10px auto;
+          width: 80%;
+          height: 500px;
+      }
+    </style>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/three-r95.all.js">
+  "https://cs.wellesley.edu/~cs307/threejs/libs/three-r80.min.js"
+  </script>
+  <script src="https://cs.wellesley.edu/~cs307/threejs/libs/OrbitControls-r95.js">
+  "https://cs.wellesley.edu/~cs307/threejs/libs/OrbitControls.js"
+  </script>
+  <script src="https://cs.wellesley.edu/~cs307/threejs/libs/tw-sp21.js">
+  "https://cs.wellesley.edu/~cs307/threejs/libs/tw-fa18.js"
+  </script>
+  <script src="https://cs.wellesley.edu/~cs307/threejs/libs/dat.gui-r95.js">
+  "https://cs.wellesley.edu/~cs307/threejs/libs/dat.gui.min.js"
+  </script>
+
+</head>
+<body>
+<h1>HW1: Obelisk - Joyce Chung</h1>
+<script>
+
+/* Returns a geometry object of a monument with four sides. 
+   The origin is at the center of the base. */
+function createMonument(baseWidth, topWidth, height) {
+  var geom = new THREE.Geometry();
+  var bW = 0.5 * baseWidth;
+  var tW = 0.5 * topWidth;
+
+  // create vertices for the monument's base
+  geom.vertices.push(new THREE.Vector3(bW, 0, bW)); // vertex 0
+  geom.vertices.push(new THREE.Vector3(bW, 0, -bW)); // vertex 1
+  geom.vertices.push(new THREE.Vector3(-bW, 0, -bW)); // vertex 2
+  geom.vertices.push(new THREE.Vector3(-bW, 0, bW)); // vertex 3
+
+  // create vertices for the monument's top
+  geom.vertices.push(new THREE.Vector3(tW, height, tW)); // vertex 4
+  geom.vertices.push(new THREE.Vector3(tW, height, -tW)); // vertex 5
+  geom.vertices.push(new THREE.Vector3(-tW, height, -tW)); // vertex 6
+  geom.vertices.push(new THREE.Vector3(-tW, height, tW)); // vertex 7
+
+  // use the vertices to define the 4 faces of the monument
+  geom.faces.push(new THREE.Face3(0, 5, 4));  
+  geom.faces.push(new THREE.Face3(0, 1, 5));
+
+  geom.faces.push(new THREE.Face3(2, 7, 6));
+  geom.faces.push(new THREE.Face3(2, 3, 7));
+
+  geom.faces.push(new THREE.Face3(3, 4, 7));
+  geom.faces.push(new THREE.Face3(3, 0, 4));
+
+  geom.faces.push(new THREE.Face3(1, 6, 5));
+  geom.faces.push(new THREE.Face3(1, 2, 6));
+
+  // calculate the normals for surface colors
+  geom.computeFaceNormals();
+
+  return geom;
+}
+
+/* Returns a geometry object of a pyramid with four sides. 
+   The origin is at the center of the base. */
+function createPyramid(width, height) {
+  var geom = new THREE.Geometry();
+  var w = 0.5 * width;
+
+  // create vertices for the pyramid's base
+  geom.vertices.push(new THREE.Vector3(w, 0, w)); // vertex 0
+  geom.vertices.push(new THREE.Vector3(w, 0, -w)); // vertex 1
+  geom.vertices.push(new THREE.Vector3(-w, 0, -w)); // vertex 2
+  geom.vertices.push(new THREE.Vector3(-w, 0, w)); // vertex 3
+
+  // vertex for the top of the pyramid
+  geom.vertices.push(new THREE.Vector3(0, height, 0)); // vertex 4
+
+  // create four faces of the pyramid
+  geom.faces.push(new THREE.Face3(0, 1, 4));
+  geom.faces.push(new THREE.Face3(1, 2, 4));
+  geom.faces.push(new THREE.Face3(2, 3, 4));
+  geom.faces.push(new THREE.Face3(3, 0, 4));
+
+  // calculate the normals for surface colors
+  geom.computeFaceNormals();
+
+  return geom;
+}
+</script>
+
+<script>
+// We always need a scene.
+var scene = new THREE.Scene();
+
+// ====================================================================
+
+// global variables 
+var sceneParams = {
+  baseWidth: 55,
+  topWidth: 34,
+  monumentHeight: 500,
+  pyramidHeight: 55
+}
+
+var monumentMesh;
+var pyramidMesh;
+
+/* Creates a 3D obelisk of given widths and heights and adds to scene */
+function placeObelisk(baseWidth, topWidth, monumentHeight, pyramidHeight) {
+  var monumentGeom = createMonument(baseWidth, topWidth, monumentHeight);
+  var pyramidGeom = createPyramid(topWidth, pyramidHeight);
+
+  // color the faces of the obelisk
+  var monumentMaterial = [
+      new THREE.MeshBasicMaterial({color: new THREE.Color(0x3c672f)}),
+      new THREE.MeshBasicMaterial({color: new THREE.Color(0x100f36)}),
+      new THREE.MeshBasicMaterial({color: new THREE.Color(0x0c4f4e)}),
+      new THREE.MeshBasicMaterial({color: new THREE.Color(0x748d69)})
+  ];
+
+  TW.setMaterialForFaces(monumentGeom, 0, 0, 1);
+  TW.setMaterialForFaces(monumentGeom, 1, 2, 3);
+  TW.setMaterialForFaces(monumentGeom, 2, 4, 5);
+  TW.setMaterialForFaces(monumentGeom, 3, 6, 7);
+
+  var pyramidMaterial = [
+      new THREE.MeshBasicMaterial({color: new THREE.Color(0xf1cbff)}),
+      new THREE.MeshBasicMaterial({color: new THREE.Color(0xbb77ff)}),
+      new THREE.MeshBasicMaterial({color: new THREE.Color(0xeeddff)}),
+      new THREE.MeshBasicMaterial({color: new THREE.Color(0xffe4e1)})
+  ];
+
+  TW.setMaterialForFaces11(pyramidGeom);
+
+  monumentMesh = new THREE.Mesh(monumentGeom, monumentMaterial);
+  pyramidMesh = new THREE.Mesh(pyramidGeom, pyramidMaterial);
+
+  // position the pyramid on top of the monument
+ pyramidMesh.position.set(0, monumentHeight, 0);
+
+  // add the meshes to the scene
+  scene.add(monumentMesh);
+  scene.add(pyramidMesh);
+}
+
+placeObelisk(sceneParams.baseWidth, sceneParams.topWidth, sceneParams.monumentHeight, sceneParams.pyramidHeight);
+
+// ================================================================
+
+// Create a renderer and camera
+
+var renderer = new THREE.WebGLRenderer();
+TW.mainInit(renderer,scene);
+
+/* We always need a camera; here we'll use a default orbiting camera.  The
+third argument are the ranges for the coordinates, to help with setting up
+the placement of the camera. They need not be perfectly accurate, but if
+they are way off, your camera might not see anything, and you'll get a
+blank canvas. */
+
+var maxHeight = 60;
+// ***bounding box needs to fit MAX size
+TW.cameraSetup(renderer,
+               scene,
+               {minx: -sceneParams.baseWidth, maxx: sceneParams.baseWidth,
+                miny: 0, maxy: sceneParams.monumentHeight + maxHeight,
+                minz: -sceneParams.baseWidth, maxz: sceneParams.baseWidth});
+
+/* Callback function that redraws the obelisk with the new dimensions */
+function redrawObelisk() {
+  scene.remove(monumentMesh);
+  scene.remove(pyramidMesh);
+  placeObelisk(sceneParams.baseWidth, sceneParams.topWidth, sceneParams.monumentHeight, sceneParams.pyramidHeight);
+  TW.render();
+}
+
+// Create GUI sliders to control dimensions of the obelisk
+var gui = new dat.GUI();
+gui.add(sceneParams, 'baseWidth', 10, 60).onChange(redrawObelisk);
+gui.add(sceneParams, 'topWidth', 10, 40).onChange(redrawObelisk);
+gui.add(sceneParams, 'monumentHeight', 100, maxHeight).onChange(redrawObelisk);
+gui.add(sceneParams, 'pyramidHeight', 10, 60).onChange(redrawObelisk);
+
+</script>
+</body>
+</html>

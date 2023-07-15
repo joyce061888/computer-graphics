@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+
+<!--HW5 - Jigglypuff 
+    Author: Joyce Chung
+    Date: February 14, 2023
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Jigglypuff</title>
+<style>
+      canvas {
+          display: block;
+          margin: 10px auto;
+          width: 80%;
+          height: 600px;
+      }
+    </style>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/three-r95.all.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/three-r80.min.js"
+</script>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/tw-sp21.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/tw-fa18.js"
+</script>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/OrbitControls-r95.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/OrbitControls-r80.js"
+</script>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/dat.gui-r95.js">
+    "https://cs.wellesley.edu/~cs307/threejs/libs/dat.gui.min.js"
+</script>
+</head>
+<body>
+<script id="jigglypuffcode">
+
+// parameters that specify the geometrical structure of jigglypuff
+var params = {
+    earHeight: 1.5,
+    earRadius: 1.5,
+    earOuterTheta: 4.4, 
+    earInnerTheta: 2*Math.PI - 4.4,
+    earAngle: -Math.PI/4,  // along z-axis
+
+    eyeWhiteRadius: 0.8,
+    outerIrisRadius: 0.7,
+    innerIrisRadius: 0.6,
+    eyeSpotRadius: 0.2,
+    eyeAngleX: -Math.PI/24,
+    eyeAngleY: +Math.PI/8, 
+
+    mouthRadius: 0.5,
+    // mouth below middle of face
+    mouthAngleZ: 4, 
+    // mouth on front of face (increase to move up)
+    mouthAngleX: Math.PI/14,
+
+    limbRadius: 0.4,
+    limbLengthScale: 2,
+    hipWidth: 1.5,
+
+    bodyRadius: 3,
+
+    // colors
+    bodyColor: 0xFAD9DC, // light pink
+    mouthColor: 0xF08886, // light red
+    eyeWhiteColor: 0xFFFFFF,
+    outerIrisColor: 0x99DFE9, // light blue
+    innerIrisColor: 0x64CAD7, // turquoise
+    innerEarColor: 0x534845, // dark brown
+
+    shininess: 5,
+    specularColor: new THREE.Color("gray")
+};
+
+// params for the box scene
+var sceneParams = {
+    boxWidth: 20, 
+    boxHeight: 20, 
+    boxDepth: 20, 
+    specularColor: new THREE.Color("gray"), 
+    wallShininess: 5,
+    // wall colors
+    sideWallColor: 0x2496c7,
+    topWallColor: 0x32964d, 
+    floorColor: 0xfac9a0,
+    // lighting
+    spotlightX: 0,
+    spotlightY: 0,
+    spotlightZ: 0,
+    spotlightColor: 0xaba9a9,
+    ambLightColor: "grey", 
+    dirLightColor: "grey"  
+}
+
+// materials for Jigglypuff
+var bodyMaterial = new THREE.MeshPhongMaterial({color: params.bodyColor, 
+                                      specular: params.specularColor,
+                                      shininess: params.shininess,
+                                      flatShading: THREE.SmoothShading})
+var mouthMaterial = new THREE.MeshPhongMaterial({color: params.mouthColor, 
+                                      specular: params.specularColor,
+                                      shininess: params.shininess,
+                                      flatShading: THREE.SmoothShading})
+var eyeWhiteMaterial = new THREE.MeshPhongMaterial({color: params.eyeWhiteColor, 
+                                      specular: params.specularColor,
+                                      shininess: params.shininess,
+                                      flatShading: THREE.SmoothShading})
+var outerIrisMaterial = new THREE.MeshPhongMaterial({color: params.outerIrisColor, 
+                                      specular: params.specularColor,
+                                      shininess: params.shininess,
+                                      flatShading: THREE.SmoothShading})
+var innerIrisMaterial = new THREE.MeshPhongMaterial({color: params.innerIrisColor, 
+                                      specular: params.specularColor,
+                                      shininess: params.shininess,
+                                      flatShading: THREE.SmoothShading})
+var innerEarMaterial = new THREE.MeshPhongMaterial({color: params.innerEarColor, 
+                                      specular: params.specularColor,
+                                      shininess: params.shininess,
+                                      flatShading: THREE.SmoothShading}) 
+
+// materials for box scene
+var colorMaterials = 
+        [new THREE.MeshPhongMaterial({color: sceneParams.sideWallColor, //Walls
+                                      specular: sceneParams.specularColor,
+                                      shininess: sceneParams.wallShininess,
+                                      flatShading: THREE.SmoothShading,
+                                      side: THREE.BackSide}), 
+        new THREE.MeshPhongMaterial({color: sceneParams.topWallColor, //Ceiling
+                                      specular: sceneParams.specularColor,
+                                      shininess: sceneParams.wallShininess,
+                                      flatShading: THREE.SmoothShading,
+                                      side: THREE.BackSide}),
+        new THREE.MeshPhongMaterial({color: sceneParams.floorColor, //Floor
+                                      specular: sceneParams.specularColor,
+                                      shininess: sceneParams.wallShininess,
+                                      flatShading: THREE.SmoothShading,
+                                      side: THREE.BackSide}),                       ]
+
+
+function createOuterEar(params) {
+    /* create and return a Mesh for an outer ear  */
+    var r = params.earRadius;
+    var h = params.earHeight;
+    var t = params.earOuterTheta;
+    var earGeometry = new THREE.ConeGeometry(r,h,10,10, true, 0, t);
+    var ear = new THREE.Mesh(earGeometry, bodyMaterial);
+    return ear;
+}
+
+function createInnerEar(params) {
+    /* create and return a Mesh for an inner ear  */
+    var r = params.earRadius;
+    var h = params.earHeight;
+    var t = params.earInnerTheta;
+    var earGeometry = new THREE.ConeGeometry(r,h,10,10, true, 4.4, t);
+    var ear = new THREE.Mesh(earGeometry, innerEarMaterial);
+    return ear;
+}
+
+function addEar(body,params,side) {
+    /* adds an ear to the head on the right (side=1) or left (side=-1).
+     * The center of the ear is flush with the surface of the head by
+     * moving it out by the radius, and rotating it around the Z axis
+     * to get it to the desired height */
+    var earFrame = new THREE.Object3D();
+    var earOuter = createOuterEar(params);
+    var earInner = createInnerEar(params);
+
+    // rotate ears so inner ear faces front
+    earOuter.rotation.y = Math.PI/4;
+    earInner.rotation.y = Math.PI/4;
+
+    var radius = params.bodyRadius;
+
+    earFrame.add(earOuter);
+    earFrame.add(earInner);
+    // position ear frame on top of body
+    earFrame.position.x = side * radius/1.3; 
+    earFrame.position.y = radius/1.3;
+    // rotate ear frame towards body 
+    earFrame.rotation.z = params.earAngle * side;
+
+    body.add(earFrame);
+    return body;
+}
+
+function createEyeLayer(params, type) {
+    /*create and return a Mesh for an eye layer based on type*/
+    var eyeGeometry;
+    var eyeMesh;
+    if (type == "eyeWhite") {
+        eyeGeometry = new THREE.CircleGeometry(params.eyeWhiteRadius,30,30);
+        eyeMesh = new THREE.Mesh(eyeGeometry, eyeWhiteMaterial);
+    } else if (type == "outerIris") {
+        eyeGeometry = new THREE.CircleGeometry(params.outerIrisRadius,30,30);
+        eyeMesh = new THREE.Mesh(eyeGeometry, outerIrisMaterial);
+    } else if (type == "innerIris") {
+        eyeGeometry = new THREE.CircleGeometry(params.innerIrisRadius,30,30);
+        eyeMesh = new THREE.Mesh(eyeGeometry, innerIrisMaterial);
+    } else if (type == "eyeSpot") {
+        eyeGeometry = new THREE.CircleGeometry(params.eyeSpotRadius,30,30);
+        eyeMesh = new THREE.Mesh(eyeGeometry, eyeWhiteMaterial);
+    } 
+    return eyeMesh;
+}
+
+function addEye(body, params, side) {
+    /* adds an eye to the head on the right (side=1) or left (side=-1).
+     * The center of the eye is flush with the surface of the head by
+     * moving it out along the Z axis by the radius, and rotating it
+     * around the X and then Y axes to get it to the desired height */
+    var eyeFrame = new THREE.Object3D();
+    var eyeWhite = createEyeLayer(params, "eyeWhite");
+    var outerIris = createEyeLayer(params, "outerIris");
+    var innerIris = createEyeLayer(params, "innerIris");
+    var eyeSpot = createEyeLayer(params, "eyeSpot");
+
+    // position eye frame on front of body
+    var r = params.bodyRadius;
+    eyeWhite.position.z = r;
+    outerIris.position.z = r + 0.01;
+    innerIris.position.z = r + 0.02;
+    // position eye spot in eye corners
+    var eyeSpotMove = params.innerIrisRadius - params.eyeSpotRadius*2;
+    eyeSpot.position.set(eyeSpotMove, eyeSpotMove, r + 0.03);
+
+    eyeFrame.add(eyeWhite);
+    eyeFrame.add(outerIris);
+    eyeFrame.add(innerIris);
+    eyeFrame.add(eyeSpot);
+
+    var angleX = params.eyeAngleX;  
+    var angleY = params.eyeAngleY; 
+     // positions eyes above the nose about x-axis 
+    eyeFrame.rotation.x = angleX;
+    // positions eyes on each side of y-axis  
+    eyeFrame.rotation.y = side * angleY; 
+
+    body.add(eyeFrame);
+    return body;
+}
+
+function createMouth(params) {
+    /* create and returns a Mesh for the mouth */
+    var radius = params.mouthRadius;
+    var mouthGeometry = new THREE.CircleGeometry(radius, 30, 30, Math.PI);
+    var mouthMesh = new THREE.Mesh(mouthGeometry, mouthMaterial);
+    return mouthMesh;
+}
+
+function addMouth(body, params) {
+    /*
+     * adds a mouth to the body frame along 
+     * the z-axis and returns the body frame with the mouth
+     */
+    var mouthFrame = new THREE.Object3D();
+    var mouth = createMouth(params);
+    // position mouth on front of face
+    var radius = params.bodyRadius;
+    mouth.position.z = radius;   
+    // rotate mouth to be straight smile
+    mouth.rotation.z = Math.PI/6;  
+    // rotate mouth frame to be at bottom/front face
+    var angleX = params.mouthAngleX;
+    var angleZ = params.mouthAngleZ;
+    mouthFrame.rotation.x = angleX;
+    mouthFrame.rotation.z = angleZ;
+    mouthFrame.add(mouth);
+    body.add(mouthFrame);
+    return body;
+}
+
+function createLimb(body, params) {
+    /* creates and returns an arm Mesh */
+    var radius = params.limbRadius;
+    var limbGeometry = new THREE.SphereGeometry(radius,100,100);
+    var limbMesh = new THREE.Mesh(limbGeometry, bodyMaterial);
+    // strectches the arm along y-axis
+    limbMesh.scale.y = params.limbLengthScale;  
+    return limbMesh;
+}
+
+function addArm(body, params, side) {
+    /* adds an arm to jigglypuff on the right (side=1) or left (side=-1) */
+    var arm = createLimb(body, params);
+    var radius = params.bodyRadius;
+    // position arm on sides of body relative to x and y axis
+    var sx = radius + 0.2;
+    var sy = radius - (params.bodyRadius + 1); 
+    arm.position.set(side * sx, sy, 0);
+    // rotate arm to point up, slanted
+    arm.rotation.z = side * -Math.PI/3; 
+    body.add(arm);
+    return body;
+}
+
+function addLeg(body, params, side) {
+    /* adds a leg to jigglypuff on the right (side=1) or left (side=-1) */
+    var leg = createLimb(body, params);
+    // give width between legs
+    var hx = params.hipWidth;
+    var hy = -params.bodyRadius;
+    leg.position.set(side * hx, hy, 0);
+    // rotate leg to horizontal
+    leg.rotation.z = side * Math.PI/2; 
+    body.add(leg);
+    return body;
+}
+
+function createJigglypuff(params) {
+    /*creates and returns a jigglypuff Object for the clown*/
+    var jigglypuff = new THREE.Object3D();
+    var radius = params.bodyRadius;
+    var jigglypuffGeom = new THREE.SphereGeometry(radius,100,100);
+    var jigglypuffMesh = new THREE.Mesh(jigglypuffGeom, bodyMaterial);
+    jigglypuff.add(jigglypuffMesh);
+    addEar(jigglypuff, params, 1);
+    addEar(jigglypuff, params, -1);
+    addEye(jigglypuff, params, 1);
+    addEye(jigglypuff, params, -1);
+    addMouth(jigglypuff, params);
+    addArm(jigglypuff, params, 1);
+    addArm(jigglypuff, params, -1);
+    addLeg(jigglypuff, params, 1);
+    addLeg(jigglypuff, params, -1);
+    return jigglypuff;
+}
+
+
+function createBox(sceneParams) {
+ /** 
+  * Creates the box geometry with only the inside sides 
+  * of the box with material 
+  * 
+  * Parameters:
+  *  - params: parameters that specify the elements in the scene
+  * 
+  * Returns:
+  *  The box mesh
+  */
+    var width = sceneParams.boxWidth;
+    var height = sceneParams.boxHeight;
+    var depth = sceneParams.boxDepth;
+
+    var boxGeom = new THREE.BoxGeometry(width,height,depth); 
+
+    // set different colors for the faces of the box
+    boxGeom.colorsNeedUpdate = true; 
+    TW.setMaterialForFaces(boxGeom,0,0,1,2,3,8,9,10,11);
+    TW.setMaterialForFaces(boxGeom,1,4,5); //ceiling
+    TW.setMaterialForFaces(boxGeom,2,6,7); //floor
+
+    var boxMesh = new THREE.Mesh(boxGeom, colorMaterials);
+
+     return boxMesh;
+}
+
+
+function createLitScene(params, sceneParams) {
+ /** 
+  * Creates and returns the entire lit scene composite
+  * object including the room, ball, and sconce object 
+  * 
+  * Parameters:
+  *  - params: parameters that specify the elements in the scene
+  */
+    var litRoom  = new THREE.Object3D();
+    var room = createBox(sceneParams);
+    var jigglypuff = createJigglypuff(params);
+    // position jigglypuff relative to box scene
+    var jigglypuffHalfHeight = params.bodyRadius + params.limbRadius*2/params.limbLengthScale;
+    var positionY = -sceneParams.boxWidth/2 + jigglypuffHalfHeight;
+    jigglypuff.position.y = positionY;
+    
+    litRoom.add(room);
+    litRoom.add(jigglypuff);
+    return litRoom;
+}
+
+// ====================================================================
+// Create and Render the Scene
+
+// construct a renderer for the scene
+var renderer = new THREE.WebGLRenderer();
+// create the Scene object
+var scene = new THREE.Scene();
+
+// create the scene with jigglypuff and the box it's in
+ var litScene = createLitScene(params, sceneParams)
+ scene.add(litScene);
+
+// ====================================================================
+// Lighting 
+
+// create ambient light and add to the scene
+var ambLight = new THREE.AmbientLight(sceneParams.ambLightColor);
+scene.add(ambLight);
+
+// create directional light and add to the scene
+var dirLight = new THREE.DirectionalLight(sceneParams.dirLightColor);
+dirLight.position.set(params.bodyRadius, params.bodyRadius, params.bodyRadius);
+scene.add(dirLight);
+
+// ====================================================================
+// Camera Setup
+
+TW.mainInit(renderer,scene);
+
+// jigglypuff bounding box 
+// var boundingBoxX =  params.bodyRadius + params.limbRadius*2;
+// var boundingBoxY = params.bodyRadius + params.limbRadius*2/params.limbLengthScale * 2;
+// var boundingBoxZ = params.bodyRadius;
+// TW.cameraSetup(renderer,
+//                scene,
+//                {minx: -boundingBoxX, maxx: boundingBoxX,
+//                 miny: 0, maxy: boundingBoxY,
+//                 minz: -boundingBoxZ, maxz: boundingBoxZ});
+
+TW.cameraSetup(renderer,
+                           scene,
+                           {minx: -sceneParams.boxWidth/2, maxx: sceneParams.boxWidth/2,
+                            miny: -sceneParams.boxWidth/2, maxy: sceneParams.boxWidth/2,
+                            minz: -sceneParams.boxWidth/2, maxz: sceneParams.boxWidth/2});
+
+
+
+</script>
+</body>
+</html>

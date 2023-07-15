@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+
+<!--Final Project--Pokemon Scene 
+    Author: Joyce Chung
+    Date: April 3, 2023
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Pokemon Scene</title>
+<style>
+      canvas {
+          display: block;
+          margin: 10px auto;
+          width: 80%;
+          height: 600px;
+      }
+    </style>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/three-r95.all.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/three-r80.min.js"
+</script>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/tw-sp21.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/tw-fa18.js"
+</script>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/OrbitControls-r95.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/OrbitControls-r80.js"
+</script>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/dat.gui-r95.js">
+    "https://cs.wellesley.edu/~cs307/threejs/libs/dat.gui.min.js"
+</script>
+
+<script src="jigglypuff.js"></script>
+<script src="snorlax.js"></script>
+<script src="heart.js"></script>
+<script src="zzz.js"></script>
+
+</head>
+<body>
+<script id="pokemonscenecode">
+
+// gui params
+// var guiParams = {
+//     zMovePeriod: 3, 
+//     zMaxX: 5,
+//     zMaxY: 5,
+//     deltaT: 0.035
+// }
+
+// params for the box scene
+var sceneParams = {
+    boxWidth: 50, 
+    boxHeight: 50, 
+    boxDepth: 50, 
+    specularColor: new THREE.Color("gray"), 
+    wallShininess: 5,
+    // wall colors
+    sideWallColor: 0x2496c7,
+    topWallColor: 0x32964d, 
+    floorColor: 0xfac9a0,
+    // lighting
+    spotlightX: 0,
+    spotlightY: 0,
+    spotlightZ: 0,
+    spotlightColor: 0xaba9a9,
+    ambLightColor: "grey", 
+    dirLightColor: "grey"  
+}
+
+// state vars for the animation
+// var animationState;
+
+// // resets the animationState to its initial setting
+// function resetAnimationState() {
+//     animationState = {
+//         time: 0,
+//         zPosX: guiParams.zMaxX,
+//         zPosY: guiParams.zMaxY,
+//     };
+// }
+
+// resetAnimationState();
+
+// zzz needs to be global so we can update its position
+// var zzz;
+
+// function makeZZZ() {
+//     if (zzz != null) {
+//         scene.remove(zzz);
+//     }
+//     zzz = createZZZ();
+//     // set initial x and y positions of zzz
+//     zzz.position.set(animationState.zPosX, animationState.zPosY, 0);
+//     scene.add(zzz);
+// }
+
+var colorMaterials = 
+        [new THREE.MeshPhongMaterial({color: sceneParams.sideWallColor, //Walls
+                                      specular: sceneParams.specularColor,
+                                      shininess: sceneParams.wallShininess,
+                                      flatShading: THREE.SmoothShading,
+                                      side: THREE.BackSide}), 
+        new THREE.MeshPhongMaterial({color: sceneParams.topWallColor, //Ceiling
+                                      specular: sceneParams.specularColor,
+                                      shininess: sceneParams.wallShininess,
+                                      flatShading: THREE.SmoothShading,
+                                      side: THREE.BackSide}),
+        new THREE.MeshPhongMaterial({color: sceneParams.floorColor, //Floor
+                                      specular: sceneParams.specularColor,
+                                      shininess: sceneParams.wallShininess,
+                                      flatShading: THREE.SmoothShading,
+                                      side: THREE.BackSide}),                       ]
+
+function createBox(sceneParams) {
+ /** 
+  * Creates the box geometry with only the inside sides 
+  * of the box with material 
+  * 
+  * Parameters:
+  *  - params: parameters that specify the elements in the scene
+  * 
+  * Returns:
+  *  The box mesh
+  */
+    var width = sceneParams.boxWidth;
+    var height = sceneParams.boxHeight;
+    var depth = sceneParams.boxDepth;
+
+    var boxGeom = new THREE.BoxGeometry(width,height,depth); 
+
+    // set different colors for the faces of the box
+    boxGeom.colorsNeedUpdate = true; 
+    TW.setMaterialForFaces(boxGeom,0,0,1,2,3,8,9,10,11);
+    TW.setMaterialForFaces(boxGeom,1,4,5); //ceiling
+    TW.setMaterialForFaces(boxGeom,2,6,7); //floor
+    var boxMesh = new THREE.Mesh(boxGeom, colorMaterials);
+    // let box walls receive the pokemon shadows
+    boxMesh.receiveShadow = true;
+    return boxMesh;
+}
+
+
+function createLitScene(jigglypuffParams, snorlaxParams, sceneParams) {
+ /** 
+  * Creates and returns the entire lit scene composite
+  * object including the room, jigglypuff, and heart objects 
+  * 
+  * Parameters:
+  *  - params: parameters that specify the elements in the scene
+  */
+    var litRoom  = new THREE.Object3D();
+    var room = createBox(sceneParams);
+
+    // adding and positioning jigglypuff
+    var jigglypuff = createJigglypuffWithMic(jigglypuffParams);
+    // position jigglypuff relative to box scene
+    var jigglyX = sceneParams.boxWidth/2 - jigglypuffParams.bodyRadius*2;
+    var jigglyY = -sceneParams.boxWidth/2; 
+    jigglypuff.position.set(jigglyX, jigglyY, 0);
+    // cast shadow
+    jigglypuff.castShadow = true;
+
+    // adding and positioning snorlax
+    var snorlax = createSnorlax(snorlaxParams);
+    var snorlaxX = -sceneParams.boxWidth/2 + snorlaxParams.bodyRadius*2;
+    var snorlaxY = -sceneParams.boxWidth/2;
+    snorlax.position.set(snorlaxX, snorlaxY, 0);
+    // cast shadow
+    snorlax.castShadow = true;
+
+    // create bezier surface hearts to the scene
+    var heart1 = createHeart();
+    heart1.position.set(10, 10 + jigglyY, 10); 
+    var heart2 = createHeart();
+    heart2.position.set(jigglypuffParams.bodyRadius*2,jigglypuffParams.bodyRadius*2 
+    + jigglyY, 0); 
+
+    // create 'zzz' symbol to indicate snorlax is sleeping
+    //var zzz = createZZZ();
+    //zzz.position.set(snorlaxX + 10, snorlaxY + 13, 0);
+    var zzz = createZZZ();  
+    
+    litRoom.add(room);
+    litRoom.add(jigglypuff);
+    litRoom.add(snorlax);
+    litRoom.add(heart1);
+    litRoom.add(heart2);
+    litRoom.add(zzz);
+
+    return litRoom;
+}
+// site: https://cs.wellesley.edu/~cs307/lectures/Animation-exercises/bouncingBall-start.html
+// ====================================================================
+// Create and Render the Scene
+
+// construct a renderer for the scene
+// anti-aliasing makes edges smoother - but animation may get slower
+var renderer = new THREE.WebGLRenderer({antialias: true});
+renderer.shadowMap.enabled = true;
+// create the Scene object
+var scene = new THREE.Scene();
+
+// create the scene with jigglypuff and the box it's in
+ var litScene = createLitScene(jigglypuffParams, snorlaxParams, sceneParams)
+ scene.add(litScene);
+
+// ====================================================================
+// Lighting 
+
+// create ambient light and add to the scene
+var ambLight = new THREE.AmbientLight(sceneParams.ambLightColor);
+scene.add(ambLight);
+
+// create directional light and add to the scene
+var dirLight = new THREE.DirectionalLight(sceneParams.dirLightColor);
+dirLight.position.set(jigglypuffParams.bodyRadius, jigglypuffParams.bodyRadius, jigglypuffParams.bodyRadius);
+scene.add(dirLight);
+
+// create a spotlight that casts shadows
+var spotLight = new THREE.SpotLight(0xaba9a9, 0.2, 0, Math.PI/6);
+spotLight.position.set(-5,5,0); // TODO: set position relative to jigglypuff
+spotLight.castShadow = true;
+scene.add(spotLight);
+
+// ====================================================================
+// Camera Setup
+
+TW.mainInit(renderer,scene);
+
+TW.cameraSetup(renderer, scene,
+                    {minx: -sceneParams.boxWidth/2, maxx: sceneParams.boxWidth/2,
+                    miny: -sceneParams.boxWidth/2, maxy: sceneParams.boxWidth/2,
+                    minz: -sceneParams.boxWidth/2, maxz: sceneParams.boxWidth/2});
+
+
+
+</script>
+</body>
+</html>

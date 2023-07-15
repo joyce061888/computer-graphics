@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+
+<!--Final Project--Pokemon Scene 
+    Author: Joyce Chung
+    Date: April 3, 2023
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Pokemon Scene</title>
+<style>
+      canvas {
+          display: block;
+          margin: 10px auto;
+          width: 80%;
+          height: 600px;
+      }
+    </style>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/three-r95.all.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/three-r80.min.js"
+</script>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/tw-sp21.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/tw-fa18.js"
+</script>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/OrbitControls-r95.js">
+"https://cs.wellesley.edu/~cs307/threejs/libs/OrbitControls-r80.js"
+</script>
+<script src="https://cs.wellesley.edu/~cs307/threejs/libs/dat.gui-r95.js">
+    "https://cs.wellesley.edu/~cs307/threejs/libs/dat.gui.min.js"
+</script>
+
+<script src="jigglypuff.js"></script>
+<script src="snorlax.js"></script>
+<script src="heart.js"></script>
+<script src="zzz.js"></script>
+
+</head>
+<body>
+<script id="pokemonscenecode">
+
+/**
+ * Created by: Joyce Chung
+ * Date: 04/05/2023
+ * 
+ * Creates a Heart Bezier Surface Frame Object 
+ * using top to bottom control points.
+ */
+
+
+// control points for right half of the heart
+var topToBottom = [
+    [ [0,2,0],  [0,3,0],  [1,3,0],  [1,2,0] ],
+    [ [0,2,1], [1,2,1],  [2,2,1],  [2,2,0] ],
+    [ [0,1,1], [0,1,1],  [1,1,1],  [1,1,0] ],
+    [ [0,0,0],  [0,0,0], [0,0,0], [0,0,0] ],
+];
+
+var heartMaterial = new THREE.MeshPhongMaterial({color: 0xEA9D9D, // light red
+                                                specular: 0xE9E9E9, // light gray
+                                                shininess: 5,
+                                                flatShading: THREE.SmoothShading})
+
+function createHeart() {
+    /* Creates a bezier surface heart and adds the Mesh to a frame */
+    var heartFrame = new THREE.Object3D();
+    var surfGeom = new THREE.BezierSurfaceGeometry( topToBottom.reverse(), 10, 10 );
+
+    // the four half hearts for the front and back side
+    //right front side of half the heart
+    var surfRightMesh = new THREE.Mesh(surfGeom, heartMaterial);
+    // left front side of half the heart
+    var surfLeftMesh = surfRightMesh.clone();
+    surfLeftMesh.scale.x = -1;
+    // right back side of half the heart
+    var surfBackRightMesh = surfRightMesh.clone();
+    surfBackRightMesh.scale.x = -1;
+    surfBackRightMesh.scale.z = -1;
+    // left back side of half the heart
+    var surfBackLeftMesh = surfRightMesh.clone();
+    surfBackLeftMesh.scale.z = -1;
+
+    heartFrame.add(surfRightMesh);
+    heartFrame.add(surfLeftMesh);
+    heartFrame.add(surfBackRightMesh);
+    heartFrame.add(surfBackLeftMesh);
+
+    return heartFrame;
+}
+
+
+
+var renderer = new THREE.WebGLRenderer({antialias: true});
+renderer.shadowMap.enabled = true;
+// create the Scene object
+var scene = new THREE.Scene();
+
+// create the scene with jigglypuff and the box it's in
+ var h = createHeart();
+ scene.add(h);
+
+// ====================================================================
+// Lighting 
+
+// create ambient light and add to the scene
+var ambLight = new THREE.AmbientLight(sceneParams.ambLightColor);
+scene.add(ambLight);
+
+// create directional light and add to the scene
+var dirLight = new THREE.DirectionalLight(sceneParams.dirLightColor);
+dirLight.position.set(jigglypuffParams.bodyRadius, jigglypuffParams.bodyRadius, jigglypuffParams.bodyRadius);
+scene.add(dirLight);
+
+// create a spotlight that casts shadows
+var spotLight = new THREE.SpotLight(0xaba9a9, 0.2, 0, Math.PI/6);
+spotLight.position.set(-5,5,0); // TODO: set position relative to jigglypuff
+spotLight.castShadow = true;
+scene.add(spotLight);
+
+// ====================================================================
+// Camera Setup
+
+TW.mainInit(renderer,scene);
+
+TW.cameraSetup(renderer, scene,
+                    {minx: -10, maxx: 10,
+                    miny: -10, maxy: 10,
+                    minz: -10, maxz: 10});
+
+
+
+</script>
+</body>
+</html>
